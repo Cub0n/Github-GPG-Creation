@@ -9,16 +9,16 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.logging.Logger;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import org.apache.commons.lang3.StringUtils;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import model.GPGKey;
 import model.UserInfo;
 
 public final class HttpClientGitHubConnector {
 
-	private static final String GITHUB_URL = "https://github.com";
+	private static final String GITHUB_URL = "https://api.github.com";
 
 	private static final Logger LOG = Logger.getLogger(HttpClientGitHubConnector.class.getName());
 
@@ -26,7 +26,7 @@ public final class HttpClientGitHubConnector {
 
 	private HttpClient client;
 
-	private String token;
+	private final String token;
 
 	/**
 	 * Instantiates a new HttpClientGitHubConnector with a default HttpClient.
@@ -41,10 +41,9 @@ public final class HttpClientGitHubConnector {
 		UserInfo userInfo = null;
 
 		try {
-			HttpResponse<String> httpResponse = send("/api/v3/user", "GET", null);
+			HttpResponse<String> httpResponse = send("/user", "GET", null);
 			userInfo = mapper.readValue(httpResponse.body(), UserInfo.class);
-		}
-		catch (IOException | InterruptedException exception) {
+		} catch (IOException | InterruptedException exception) {
 			LOG.warning("Error: Connecting to Github");
 			// Restore interrupted state...
 			Thread.currentThread().interrupt();
@@ -61,10 +60,9 @@ public final class HttpClientGitHubConnector {
 
 			mapper.writeValue(writer, gpgKey);
 
-			HttpResponse<String> httpResponse = send("/api/v3/user/gpg_keys", "POST", writer.toString());
+			HttpResponse<String> httpResponse = send("/user/gpg_keys", "POST", writer.toString());
 			ret = httpResponse.body();
-		}
-		catch (IOException | InterruptedException exception) {
+		} catch (IOException | InterruptedException exception) {
 			LOG.warning("Error: Could not send GPG Key");
 			// Restore interrupted state...
 			Thread.currentThread().interrupt();
@@ -81,8 +79,7 @@ public final class HttpClientGitHubConnector {
 
 		try {
 			builder.uri((new URL(GITHUB_URL + urlTail)).toURI());
-		}
-		catch (URISyntaxException e) {
+		} catch (URISyntaxException e) {
 			throw new IOException("Invalid URL", e);
 		}
 

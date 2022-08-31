@@ -25,22 +25,21 @@ public class Main {
 		UserInfo userInfo = connector.getUserInformation();
 
 		if (StringUtils.isBlank(userInfo.getName()) || StringUtils.isBlank(userInfo.geteMail())) {
-			LOG.severe("User NOT in GHE!");
+			LOG.severe("Username or eMail in GitHub not set!");
 			return;
 		}
 
-		LOG.info("Found User in GHE: " + userInfo.getName() + ", " + userInfo.geteMail());
+		LOG.info("Found User in Github: " + userInfo.getName() + ", " + userInfo.geteMail());
 
 		String passphrase;
 		if (StringUtils.isBlank(args[1])) {
 			passphrase = readPasswordFromInput();
-		}
-		else {
+		} else {
 			passphrase = args[1];
 		}
 
-		final String keyID =
-				GPGWrapper.createKeyForGHE(userInfo.getName(), userInfo.geteMail(), StringUtils.trim(passphrase));
+		final String keyID = GPGWrapper.createKeyForGHE(userInfo.getName(), userInfo.geteMail(),
+				StringUtils.trim(passphrase));
 
 		LOG.info("Key Generated");
 
