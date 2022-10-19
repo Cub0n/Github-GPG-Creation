@@ -17,7 +17,7 @@
 		<!-- Dependency version -->
 		<commons.io.version>2.11.0</commons.io.version>
 		<commons.lang3.version>3.12.0</commons.lang3.version>
-		<fasterxml.jackson.version>2.13.3</fasterxml.jackson.version>
+		<fasterxml.jackson.version>2.13.4.1</fasterxml.jackson.version>
 		<junit.jupiter.version>5.9.0</junit.jupiter.version>
 	</properties>
 
