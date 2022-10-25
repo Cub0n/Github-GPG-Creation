@@ -11,6 +11,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import model.GPGKey;
+import wrapper.ProcessHandler.ProcessOutStreams;
 
 /**
  * Thin Java wrapper for GPG command line tool.
@@ -46,14 +47,14 @@ public final class GPGWrapper {
 				runGPG("--no-tty", "--passphrase", passphrase, "--quick-generate-key", name + " <" + email + ">", ALGO,
 						USAGE, EXPIRE).getStdErr()) {
 
-			String output = IOUtils.toString(is, Charset.defaultCharset());
+			final String output = IOUtils.toString(is, Charset.defaultCharset());
 
 			String fpr = StringUtils.substringAfterLast(output, "/");
 			fpr = StringUtils.substringBefore(fpr, ".").trim();
 
 			runGPG("--pinentry-mode=loopback", "--passphrase", passphrase, "--quick-add-key", fpr, ALGO, USAGE, EXPIRE);
 
-			String keyId = StringUtils.substringBetween(output, "gpg: key", "marked as ultimately trusted");
+			final String keyId = StringUtils.substringBetween(output, "gpg: key", "marked as ultimately trusted");
 
 			return keyId.trim();
 		}
@@ -72,7 +73,7 @@ public final class GPGWrapper {
 
 			String armoredPublicKey = IOUtils.toString(is, Charset.defaultCharset());
 
-			GPGKey gpgKey = new GPGKey();
+			final GPGKey gpgKey = new GPGKey();
 			gpgKey.setArmoredPublicKey(armoredPublicKey.trim());
 
 			return gpgKey;
@@ -83,61 +84,16 @@ public final class GPGWrapper {
 	 * Run GPG and pipe data to process
 	 *
 	 * @param arguments
-	 * @return GPGOutStreams object holding cached streams of gpg's stdout and stderr output.
+	 * @return ProcessOutStreams object holding cached streams of of stdout and stderr
 	 * @throws IOException
 	 */
-	private static GPGOutStreams runGPG(String... arguments) throws IOException {
+	private static ProcessOutStreams runGPG(String... arguments) throws IOException {
 
-		List<String> command = new ArrayList<>();
-		command.add(GPG_PATH);
-		command.add("--batch");
-		command.addAll(Arrays.asList(arguments));
+		List<String> argumentList = new ArrayList<>();
+		argumentList.add(GPG_PATH);
+		argumentList.add("--batch");
+		argumentList.addAll(Arrays.asList(arguments));
 
-		ProcessBuilder pb = new ProcessBuilder(command);
-		Process process = pb.start();
-		try {
-			if (process.waitFor() != 0) {
-				throw new GPGException(IOUtils.toString(process.getErrorStream(), Charset.defaultCharset()));
-			}
-		}
-		catch (InterruptedException e) {
-			// Restore interrupted state...
-			Thread.currentThread().interrupt();
-			throw new RuntimeException(e);
-		}
-		return new GPGOutStreams(process.getInputStream(), process.getErrorStream());
-	}
-
-	public static class GPGException extends RuntimeException {
-
-		public GPGException(String reason) {
-			super(reason);
-		}
-	}
-
-	private static final class GPGOutStreams {
-
-		private InputStream stdOut;
-
-		private InputStream stdErr;
-
-		public GPGOutStreams(InputStream gpgStdOut, InputStream gpgStdErr) {
-			// We want to cache the stream contents for now, so we don't leak open streams from a Process instance.
-			try {
-				this.stdOut = IOUtils.toBufferedInputStream(gpgStdOut);
-				this.stdErr = IOUtils.toBufferedInputStream(gpgStdErr);
-			}
-			catch (IOException e) {
-				throw new RuntimeException(e);
-			}
-		}
-
-		public InputStream getStdOut() {
-			return stdOut;
-		}
-
-		public InputStream getStdErr() {
-			return stdErr;
-		}
+		return ProcessHandler.handle(argumentList);
 	}
 }

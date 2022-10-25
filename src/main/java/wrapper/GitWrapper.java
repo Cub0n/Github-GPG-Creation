@@ -1,18 +1,17 @@
 package wrapper;
 
 import java.io.IOException;
-import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.List;
 
-import org.apache.commons.io.IOUtils;
+import wrapper.ProcessHandler.ProcessOutStreams;
 
 public final class GitWrapper {
 
 	private static final String GIT_PATH = "git";
 
 	private GitWrapper() {
-		// 
+		// noop
 	}
 
 	public static void setGitSettings(final String name, final String email, final String signingkey)
@@ -25,26 +24,8 @@ public final class GitWrapper {
 		setValueInGit("user.signingkey", signingkey);
 	}
 
-	private static void setValueInGit(final String key, final String value) throws IOException {
-		List<String> commands = Arrays.asList(GIT_PATH, "config", "--global", key, value);
-
-		Process process = new ProcessBuilder(commands).start();
-		try {
-			if (process.waitFor() != 0) {
-				throw new GITException(IOUtils.toString(process.getErrorStream(), Charset.defaultCharset()));
-			}
-		}
-		catch (InterruptedException e) {
-			// Restore interrupted state...
-			Thread.currentThread().interrupt();
-			throw new RuntimeException(e);
-		}
-	}
-
-	public static class GITException extends RuntimeException {
-
-		public GITException(String reason) {
-			super(reason);
-		}
+	private static ProcessOutStreams setValueInGit(final String key, final String value) throws IOException {
+		final List<String> argumentList = Arrays.asList(GIT_PATH, "config", "--global", key, value);
+		return ProcessHandler.handle(argumentList);
 	}
 }
