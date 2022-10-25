@@ -1,4 +1,7 @@
+
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.logging.Logger;
 
 import org.apache.commons.lang3.ArrayUtils;
@@ -21,25 +24,26 @@ public class Main {
 			return;
 		}
 
-		HttpClientGitHubConnector connector = new HttpClientGitHubConnector(args[0]);
-		UserInfo userInfo = connector.getUserInformation();
+		final HttpClientGitHubConnector connector = new HttpClientGitHubConnector(args[0]);
+		final UserInfo userInfo = connector.getUserInformation();
 
 		if (StringUtils.isBlank(userInfo.getName()) || StringUtils.isBlank(userInfo.geteMail())) {
-			LOG.severe("Username or eMail in GitHub not set!");
+			LOG.severe("User NOT in GHE!");
 			return;
 		}
 
-		LOG.info("Found User in Github: " + userInfo.getName() + ", " + userInfo.geteMail());
+		LOG.info("Found User in GHE: " + userInfo.getName() + ", " + userInfo.geteMail());
 
 		String passphrase;
-		if (StringUtils.isBlank(args[1])) {
-			passphrase = readPasswordFromInput();
-		} else {
+		if ((args.length == 2) && StringUtils.isNotBlank(args[1])) {
 			passphrase = args[1];
 		}
+		else {
+			passphrase = readPasswordFromInput();
+		}
 
-		final String keyID = GPGWrapper.createKeyForGHE(userInfo.getName(), userInfo.geteMail(),
-				StringUtils.trim(passphrase));
+		final String keyID =
+				GPGWrapper.createKeyForGHE(userInfo.getName(), userInfo.geteMail(), StringUtils.trim(passphrase));
 
 		LOG.info("Key Generated");
 
@@ -56,9 +60,28 @@ public class Main {
 		LOG.info("Settings done ... Have a nice day :)");
 	}
 
-	private static String readPasswordFromInput() {
-		// coding effort ... tbd
-		return StringUtils.EMPTY;
-	}
+	private static String readPasswordFromInput() throws IOException {
 
+		boolean identical = false;
+		String password = null;
+		String checked = null;
+
+		try (BufferedReader reader = new BufferedReader(new InputStreamReader(System.in))) {
+			while (!identical) {
+
+				System.out.println("Please type new password for GPG Key: ");
+				password = reader.readLine();
+
+				System.out.println("Repeat password: ");
+				checked = reader.readLine();
+
+				identical =
+						(StringUtils.isNotBlank(password)
+								&& StringUtils.isNotBlank(checked)
+								&& StringUtils.equals(password, checked));
+			}
+		}
+
+		return password;
+	}
 }
