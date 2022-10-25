@@ -17,14 +17,14 @@ The only selected scopes are *user* and *admin:gpg_key*.
 
 ## Start the programm
 The program should run on the commandline and from every IDE you use, as long as GPG and GIT are installed.
-In the moment two arguments has to be set:
-* The newly generated token
-* The passphrase for the GPG key
+* The first program argument is the Github token and is mandatory
+* The second argument is the password for the GPG Key and is optional. Then the password have to be typed in at the commandline
 
 # TODO
 * The expiry date for the GPG key has not to be hardcoded
 * Frontend for generation
-* Automatically find GPG and GIT native programms on Linux, Mac and Windows systems
+* Automatically find GPG and GIT native programms on ~~Linux~~, Mac and Windows systems
+* Adapt to other languages than english (see GPGWrapper: substring between "gpg: key" and "marked as ultimately trusted")
 
 # Inspired by 
 * https://github.com/wimtie/gpg-java
